@@ -4,7 +4,7 @@ import { PassportModule } from '@nestjs/passport';
 import { LocalStrategy } from './strategies/local.strategy';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { User, UserSchema } from './entities/user.entity';
+import { User, UserSchema } from '../user/schema/user.schema';
 
 @Module({
   imports: [

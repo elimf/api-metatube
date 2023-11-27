@@ -3,7 +3,10 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document,  } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 // Schema as MongooseSchema
-
+export enum UserRole {
+    USER = 'user',
+    ADMIN = 'admin',
+  }
 @Schema()
 export class User extends Document {
   @Prop({ required: true, unique: true })
@@ -16,11 +19,13 @@ export class User extends Document {
   password: string;
 
   @Prop()
-  profile: {
-    avatar: string;
-    banner: string;
-    description: string;
-  };
+  avatar: string;
+
+  @Prop()
+  banner: string;
+
+  @Prop()
+  description: string;
 
   @Prop({ type: [{ channelId: String, channelName: String }] })
   subscriptions: Array<{ channelId: string; channelName: string }>;
@@ -45,7 +50,9 @@ export class User extends Document {
 
   @Prop({ type: [String] })
   likedVideos: string[];
-
+  
+  @Prop({ type: String, enum: Object.values(UserRole), default: UserRole.USER })
+  role: UserRole;
   async validatePassword(password: string): Promise<boolean> {
     return await bcrypt.compare(password, this.password);
   }
