@@ -1,18 +1,62 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+/* eslint-disable prettier/prettier */
+import { Injectable } from '@nestjs/common';
+import { UserService } from 'src/user/user.service';
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 import { User } from '../user/schema/user.schema';
-//import * as bcrypt from 'bcrypt';
+
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    private readonly userService: UserService,
+    private jwtService: JwtService,
+  ) {}
 
-  async validateUser(username: string, password: string): Promise<User> {
-    const user = await this.userModel.findOne({ username }).exec();
+  async validateUser(email: string, password: string): Promise<User | null> {
+    const user = await this.userService.findOneWithEmail(email);
 
-    if (user && (await user.validatePassword(password))) {
-      return user;
+    if (user && (await bcrypt.compare(password, user.password))) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...result } = user;
+      return result as User;
     }
-    throw new UnauthorizedException('Invalid credentials');
+    return null;
+  }
+
+  async login(user: User) {
+    const payload = {
+      email: user.email,
+      role: user.role,
+      sub: {
+        username: user.username,
+      },
+    };
+    return {
+      access_token: await this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+      }),
+      refresh_token: await this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '1h',
+      }),
+    };
+  }
+  async refreshToken(user: User) {
+    const payload = {
+      email: user.email,
+      role: user.role,
+      sub: {
+        username: user.username,
+      },
+    };
+    return {
+      access_token: await this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+      }),
+      refresh_token: await this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '60',
+      }),
+    };
   }
 }
