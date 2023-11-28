@@ -10,6 +10,7 @@ import mongoose, { ObjectId } from 'mongoose';
 import { User, UserRole } from './schema/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
+import { promises as fsPromises } from 'fs';
 
 @Injectable()
 export class UserService {
@@ -67,22 +68,55 @@ export class UserService {
     return await this.userModel.findOne({ email: email });
   }
   async deleteOneById(id: string): Promise<void> {
+    const user = await this.userModel.findOne({ _id: id }).exec();
+    if (!user) {
+      // L'utilisateur n'existe pas
+      throw new NotFoundException('Utilisateur non trouvé');
+    }
+    if (user.avatar) {
+      await this.deleteFile(user.avatar);
+    }
+
+    if (user.banner) {
+      await this.deleteFile(user.banner);
+    }
     await this.userModel.findOneAndDelete({ _id: id }).exec();
   }
-  async updateUser(
-    id: string,
-    updateUserDto: any,
-  ): Promise<User> {
-    
-
-    const user = await this.userModel
-      .findByIdAndUpdate(id, updateUserDto, { new: true })
-      .exec();
-
-    if (!user) {
+  async updateUser(id: string, updateUserDto: any): Promise<User> {
+    let user: User | null = null;
+    // Récupérez l'utilisateur actuel
+    try {
+      user = await this.userModel.findOne({ _id: id }).exec();
+    } catch (error) {
       throw new NotFoundException('Utilisateur non trouvé');
     }
 
-    return user;
+    // Supprimez les anciens fichiers d'avatar ou de bannière s'ils sont présents dans updateUserDto
+    if (updateUserDto.avatar) {
+      await this.deleteFile(user.avatar);
+    }
+
+    if (updateUserDto.banner) {
+      await this.deleteFile(user.banner);
+    }
+
+    // Mettez à jour l'utilisateur avec les nouvelles informations
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(id, updateUserDto, { new: true })
+      .exec();
+
+    return updatedUser;
+  }
+  async deleteFile(filePath: string) {
+    try {
+      // Supprimez le fichier du chemin spécifié
+      await fsPromises.unlink(filePath);
+      console.log(`Fichier supprimé avec succès: ${filePath}`);
+    } catch (err) {
+      console.error(
+        `Erreur lors de la suppression du fichier ${filePath}:`,
+        err,
+      );
+    }
   }
 }
