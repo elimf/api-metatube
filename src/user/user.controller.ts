@@ -5,6 +5,8 @@ import {
   Delete,
   Body,
   HttpCode,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import {
@@ -13,8 +15,12 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { UpdateUserDto } from './dto/update-user.dto';
 
-@ApiTags('user')
+@ApiTags('User')
 @ApiBearerAuth()
 @Controller('user')
 export class UserController {
@@ -24,8 +30,38 @@ export class UserController {
   @ApiOperation({ summary: 'Update a user' })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  updateUser(@Param('id') id: string, @Body() updateUserDto: any) {
-    // Use the service to update the user
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'avatar', maxCount: 1 },
+        { name: 'banner', maxCount: 1 },
+      ],
+      {
+        storage: diskStorage({
+          destination: './uploads',
+          filename: (req, file, callback) => {
+            const uniqueSuffix =
+              Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const ext = extname(file.originalname);
+            const filename = `${uniqueSuffix}${ext}`;
+            callback(null, filename);
+          },
+        }),
+      },
+    ),
+  )
+  updateUser(
+    @Param('id') id: string,
+    @UploadedFiles()
+    files: { avatar?: Express.Multer.File[]; banner?: Express.Multer.File[] },
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    if (files.avatar) {
+      updateUserDto.avatar = files.avatar[0].path;
+    }
+    if (files.banner) {
+      updateUserDto.banner = files.banner[0].path;
+    }
     return this.userService.updateUser(id, updateUserDto);
   }
 

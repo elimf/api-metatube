@@ -69,13 +69,20 @@ export class UserService {
   async deleteOneById(id: string): Promise<void> {
     await this.userModel.findOneAndDelete({ _id: id }).exec();
   }
-  async updateUser(id: string, updateUserDto: any): Promise<User> {
+  async updateUser(
+    id: string,
+    updateUserDto: any,
+  ): Promise<User> {
+    
+
     const user = await this.userModel
       .findByIdAndUpdate(id, updateUserDto, { new: true })
       .exec();
+
     if (!user) {
       throw new NotFoundException('Utilisateur non trouvé');
     }
+
     return user;
   }
 }
