@@ -20,7 +20,7 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { UpdateUserDto } from './dto/update-user.dto';
 
-@ApiTags('user')
+@ApiTags('User')
 @ApiBearerAuth()
 @Controller('user')
 export class UserController {
