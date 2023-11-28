@@ -3,6 +3,7 @@ import {
   Injectable,
   BadRequestException,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { ObjectId } from 'mongoose';
@@ -65,7 +66,16 @@ export class UserService {
   async findOneWithEmail(email: string): Promise<User | null> {
     return await this.userModel.findOne({ email: email });
   }
-  async deleteOneById(id: ObjectId): Promise<User> {
-    return this.userModel.findByIdAndRemove(id);
+  async deleteOneById(id: string): Promise<void> {
+    await this.userModel.findOneAndDelete({ _id: id }).exec();
+  }
+  async updateUser(id: string, updateUserDto: any): Promise<User> {
+    const user = await this.userModel
+      .findByIdAndUpdate(id, updateUserDto, { new: true })
+      .exec();
+    if (!user) {
+      throw new NotFoundException('Utilisateur non trouvé');
+    }
+    return user;
   }
 }
