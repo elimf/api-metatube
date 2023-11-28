@@ -1,8 +1,7 @@
 /* eslint-disable prettier/prettier */
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document,  } from 'mongoose';
-import * as bcrypt from 'bcrypt';
-// Schema as MongooseSchema
+
 export enum UserRole {
     USER = 'user',
     ADMIN = 'admin',
@@ -53,9 +52,7 @@ export class User extends Document {
   
   @Prop({ type: String, enum: Object.values(UserRole), default: UserRole.USER })
   role: UserRole;
-  async validatePassword(password: string): Promise<boolean> {
-    return await bcrypt.compare(password, this.password);
-  }
+
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
