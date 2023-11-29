@@ -11,6 +11,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { User } from '../user/schema/user.schema';
+
+
 @ApiTags('Authentification')
 @Controller('auth')
 export class AuthController {
