@@ -24,6 +24,7 @@ export class AuthService {
 
   async login(user: User) {
     const payload = {
+      id: user._id,
       email: user.email,
       role: user.role,
       sub: {
@@ -42,6 +43,7 @@ export class AuthService {
   }
   async refreshToken(user: User) {
     const payload = {
+      id: user._id,
       email: user.email,
       role: user.role,
       sub: {
