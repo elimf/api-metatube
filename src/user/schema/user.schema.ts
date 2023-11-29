@@ -1,6 +1,8 @@
 /* eslint-disable prettier/prettier */
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document,  } from 'mongoose';
+import { Channel } from '../../channel/schema/channel.schema';
+import { Playlist } from '../../playlist/schema/playlist.schema';
 
 export enum UserRole {
     USER = 'user',
@@ -26,23 +28,14 @@ export class User extends Document {
   @Prop()
   description: string;
 
+  @Prop({ type: [Channel] })
+  channels: Channel[];
+
   @Prop({ type: [{ channelId: String, channelName: String }] })
   subscriptions: Array<{ channelId: string; channelName: string }>;
 
-  @Prop({ type: [{ videoId: String, title: String, description: String, thumbnail: String, views: Number, likes: Number, dislikes: Number, comments: [{ commentId: String, text: String, userId: String, timestamp: String }] }] })
-  videos: Array<{
-    videoId: string;
-    title: string;
-    description: string;
-    thumbnail: string;
-    views: number;
-    likes: number;
-    dislikes: number;
-    comments: Array<{ commentId: string; text: string; userId: string; timestamp: string }>;
-  }>;
-
-  @Prop({ type: [{ playlistId: String, title: String, videos: [String] }] })
-  playlists: Array<{ playlistId: string; title: string; videos: string[] }>;
+  @Prop({ type: [Playlist] })
+  playlists: Playlist[];
 
   @Prop({ type: [{ videoId: String, title: String, timestamp: String }] })
   history: Array<{ videoId: string; title: string; timestamp: string }>;
@@ -52,6 +45,9 @@ export class User extends Document {
   
   @Prop({ type: String, enum: Object.values(UserRole), default: UserRole.USER })
   role: UserRole;
+
+  @Prop({ required: true, default: Date.now })
+  timestamp: string;
 
 }
 

@@ -9,6 +9,10 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ChannelModule } from './channel/channel.module';
+import { VideoModule } from './video/video.module';
+import { CommentModule } from './comment/comment.module';
+import { PlaylistModule } from './playlist/playlist.module';
 
 @Module({
   imports: [
@@ -26,6 +30,10 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     MongooseModule.forRoot(process.env.DB_URI),
     AuthModule,
     UserModule,
+    ChannelModule,
+    VideoModule,
+    CommentModule,
+    PlaylistModule,
   ],
   controllers: [AppController],
   providers: [AppService],
