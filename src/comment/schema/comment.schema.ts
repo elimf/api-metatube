@@ -16,7 +16,7 @@ export class Comment extends Document {
     @Prop({ required: true })
     userId: string;
     
-    @Prop({ type: [{ type: [Comment], ref: 'Comment' }], default: [] })
+    @Prop({ type: () => [Comment], default: [] }) // Lazy load the type
     replies: Comment[];
     
     @Prop({ required: true })
