@@ -36,7 +36,6 @@ export class UserController {
     FileFieldsInterceptor(
       [
         { name: 'avatar', maxCount: 1 },
-        { name: 'banner', maxCount: 1 },
       ],
       {
         storage: diskStorage({
@@ -61,9 +60,6 @@ export class UserController {
   ) {
     if (files.avatar) {
       updateUserDto.avatar = files.avatar[0].path;
-    }
-    if (files.banner) {
-      updateUserDto.banner = files.banner[0].path;
     }
     return this.userService.updateUser(req.user.id, updateUserDto);
   }

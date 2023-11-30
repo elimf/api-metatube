@@ -46,9 +46,7 @@ export class UserService {
         email: user.email,
         password: hashedPassword,
         avatar: '',
-        banner: '',
-        description: '',
-        channels: [],
+        channel: '',
         subscriptions: [],
         playlists: [],
         history: [],
@@ -66,7 +64,7 @@ export class UserService {
   async findOneById(id: string): Promise<User | null> {
     return this.userModel.findById(id);
   }
-  
+
   async findOneWithEmail(email: string): Promise<User | null> {
     return await this.userModel.findOne({ email: email });
   }
@@ -85,10 +83,6 @@ export class UserService {
       await this.utils.deleteFile(user.avatar);
     }
 
-    if (updateUserDto.banner) {
-      await this.utils.deleteFile(user.banner);
-    }
-
     // Update the user with the new information
     const updatedUser = await this.userModel
       .findByIdAndUpdate(id, updateUserDto, { new: true })
@@ -96,20 +90,17 @@ export class UserService {
 
     return updatedUser;
   }
-  
+
   async deleteOneById(userId: string): Promise<void> {
     const user = await this.userModel.findOne({ _id: userId }).exec();
     if (!user) {
-      // 
+      //
       throw new NotFoundException('Utilisateur non trouvé');
     }
     if (user.avatar) {
       await this.utils.deleteFile(user.avatar);
     }
 
-    if (user.banner) {
-      await this.utils.deleteFile(user.banner);
-    }
     await this.userModel.findOneAndDelete({ _id: userId }).exec();
   }
 }

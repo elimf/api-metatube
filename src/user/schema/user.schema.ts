@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document,  } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { Channel } from '../../channel/schema/channel.schema';
 import { Playlist } from '../../playlist/schema/playlist.schema';
 
@@ -21,14 +21,8 @@ export class User extends Document {
   @Prop()
   avatar: string;
 
-  @Prop()
-  banner: string;
-
-  @Prop()
-  description: string;
-
-  @Prop({ type: [Channel] })
-  channels: Channel[];
+  @Prop({ type: Types.ObjectId, ref: 'Channel' })
+  channel: Channel;
 
   @Prop({ type: [{ channelId: String, channelName: String }] })
   subscriptions: Array<{ channelId: string; channelName: string }>;
@@ -41,13 +35,12 @@ export class User extends Document {
 
   @Prop({ type: [String] })
   likedVideos: string[];
-  
+
   @Prop({ type: String, enum: Object.values(UserRole), default: UserRole.USER })
   role: UserRole;
 
   @Prop({ required: true, default: Date.now })
   timestamp: string;
-
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

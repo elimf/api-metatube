@@ -43,23 +43,6 @@ export class UpdateUserDto extends PartialType(CreateUserDto) {
   avatar?: string;
 
   @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  @ApiProperty({
-    example: 'banner-url',
-    description: 'The URL of the banner image',
-  })
-  banner?: string;
-
-  @IsOptional()
-  @IsString()
-  @ApiProperty({
-    example: 'Some description',
-    description: 'The description of your user',
-  })
-  description?: string;
-
-  @IsOptional()
   @IsArray()
   @ApiProperty({
     type: 'array',
