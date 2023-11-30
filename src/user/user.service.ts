@@ -45,15 +45,16 @@ export class UserService {
         username: user.username,
         email: user.email,
         password: hashedPassword,
-        role: UserRole.USER,
         avatar: '',
         banner: '',
         description: '',
+        channels: [],
         subscriptions: [],
-        videos: [],
         playlists: [],
         history: [],
         likedVideos: [],
+        role: UserRole.USER,
+        timestamp: Date.now(),
       });
 
       return createdUser.save();
