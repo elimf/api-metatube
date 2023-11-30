@@ -5,23 +5,23 @@ import { Playlist } from '../../playlist/schema/playlist.schema';
 
 @Schema()
 export class Channel extends Document {
+  @Prop({ default: '' })
+  banner: string;
+
   @Prop({ required: true })
   channelName: string;
 
   @Prop()
   description: string;
-  
-  @Prop({ default: '' })
-  banner: string;
-
-  @Prop({ type: [Video] })
-  videos: Video[];
 
   @Prop({ type: [Playlist] })
   playlists: Playlist[];
 
   @Prop({ required: true, default: Date.now })
   timestamp: string;
+
+  @Prop({ type: [Video] })
+  videos: Video[];
 }
 
 export const ChannelSchema = SchemaFactory.createForClass(Channel);
