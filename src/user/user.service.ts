@@ -66,19 +66,21 @@ export class UserService {
   async findOneById(id: string): Promise<User | null> {
     return this.userModel.findById(id);
   }
+  
   async findOneWithEmail(email: string): Promise<User | null> {
     return await this.userModel.findOne({ email: email });
   }
+
   async updateUser(id: string, updateUserDto: any): Promise<User> {
     let user: User | null = null;
-    // Récupérez l'utilisateur actuel
+    // Check if the user exists
     try {
       user = await this.userModel.findOne({ _id: id }).exec();
     } catch (error) {
-      throw new NotFoundException('Utilisateur non trouvé');
+      throw new NotFoundException('User not found');
     }
 
-    // Supprimez les anciens fichiers d'avatar ou de bannière s'ils sont présents dans updateUserDto
+    // Delete old avatar or banner files if they are present in updateUserDto
     if (updateUserDto.avatar) {
       await this.utils.deleteFile(user.avatar);
     }
@@ -87,17 +89,18 @@ export class UserService {
       await this.utils.deleteFile(user.banner);
     }
 
-    // Mettez à jour l'utilisateur avec les nouvelles informations
+    // Update the user with the new information
     const updatedUser = await this.userModel
       .findByIdAndUpdate(id, updateUserDto, { new: true })
       .exec();
 
     return updatedUser;
   }
+  
   async deleteOneById(userId: string): Promise<void> {
     const user = await this.userModel.findOne({ _id: userId }).exec();
     if (!user) {
-      // L'utilisateur n'existe pas
+      // 
       throw new NotFoundException('Utilisateur non trouvé');
     }
     if (user.avatar) {
