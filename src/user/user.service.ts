@@ -9,13 +9,15 @@ import mongoose, { ObjectId } from 'mongoose';
 import { User, UserRole } from './schema/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
-import { promises as fsPromises } from 'fs';
+import Utils from '../utils/utils';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(User.name) private userModel: mongoose.Model<User>,
+    private readonly utils: Utils,
   ) {}
+
   async createUser(user: CreateUserDto): Promise<User> {
     // Check if the email is already in use
     const existingUser = await this.userModel.findOne({ email: user.email });
@@ -66,21 +68,6 @@ export class UserService {
   async findOneWithEmail(email: string): Promise<User | null> {
     return await this.userModel.findOne({ email: email });
   }
-  async deleteOneById(id: string): Promise<void> {
-    const user = await this.userModel.findOne({ _id: id }).exec();
-    if (!user) {
-      // L'utilisateur n'existe pas
-      throw new NotFoundException('Utilisateur non trouvé');
-    }
-    if (user.avatar) {
-      await this.deleteFile(user.avatar);
-    }
-
-    if (user.banner) {
-      await this.deleteFile(user.banner);
-    }
-    await this.userModel.findOneAndDelete({ _id: id }).exec();
-  }
   async updateUser(id: string, updateUserDto: any): Promise<User> {
     let user: User | null = null;
     // Récupérez l'utilisateur actuel
@@ -92,11 +79,11 @@ export class UserService {
 
     // Supprimez les anciens fichiers d'avatar ou de bannière s'ils sont présents dans updateUserDto
     if (updateUserDto.avatar) {
-      await this.deleteFile(user.avatar);
+      await this.utils.deleteFile(user.avatar);
     }
 
     if (updateUserDto.banner) {
-      await this.deleteFile(user.banner);
+      await this.utils.deleteFile(user.banner);
     }
 
     // Mettez à jour l'utilisateur avec les nouvelles informations
@@ -106,16 +93,19 @@ export class UserService {
 
     return updatedUser;
   }
-  async deleteFile(filePath: string) {
-    try {
-      // Supprimez le fichier du chemin spécifié
-      await fsPromises.unlink(filePath);
-      console.log(`Fichier supprimé avec succès: ${filePath}`);
-    } catch (err) {
-      console.error(
-        `Erreur lors de la suppression du fichier ${filePath}:`,
-        err,
-      );
+  async deleteOneById(userId: string): Promise<void> {
+    const user = await this.userModel.findOne({ _id: userId }).exec();
+    if (!user) {
+      // L'utilisateur n'existe pas
+      throw new NotFoundException('Utilisateur non trouvé');
     }
+    if (user.avatar) {
+      await this.utils.deleteFile(user.avatar);
+    }
+
+    if (user.banner) {
+      await this.utils.deleteFile(user.banner);
+    }
+    await this.userModel.findOneAndDelete({ _id: userId }).exec();
   }
 }

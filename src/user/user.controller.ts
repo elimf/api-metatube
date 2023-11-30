@@ -1,14 +1,16 @@
 import {
   Controller,
-  Param,
   Patch,
   Delete,
   Body,
   HttpCode,
+  Request,
   UploadedFiles,
   UseInterceptors,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -26,7 +28,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Patch(':id')
+  @Patch()
   @ApiOperation({ summary: 'Update a user' })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
@@ -50,8 +52,9 @@ export class UserController {
       },
     ),
   )
+  @UseGuards(JwtAuthGuard)
   updateUser(
-    @Param('id') id: string,
+    @Request() req,
     @UploadedFiles()
     files: { avatar?: Express.Multer.File[]; banner?: Express.Multer.File[] },
     @Body() updateUserDto: UpdateUserDto,
@@ -62,16 +65,16 @@ export class UserController {
     if (files.banner) {
       updateUserDto.banner = files.banner[0].path;
     }
-    return this.userService.updateUser(id, updateUserDto);
+    return this.userService.updateUser(req.user.id, updateUserDto);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete a user' })
+  @Delete()
+  @ApiOperation({ summary: 'Delete your personnal account' })
   @ApiResponse({ status: 204, description: 'User deleted successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @HttpCode(204)
-  deleteUser(@Param('id') id: string) {
-    // Use the service to delete the user
-    return this.userService.deleteOneById(id);
+  @UseGuards(JwtAuthGuard)
+  deleteUser(@Request() req) {
+    return this.userService.deleteOneById(req.user.id);
   }
 }
