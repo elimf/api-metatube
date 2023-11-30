@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { ObjectId } from 'mongoose';
+import { Model } from 'mongoose';
 import { User, UserRole } from './schema/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
@@ -14,7 +14,7 @@ import Utils from '../utils/utils';
 @Injectable()
 export class UserService {
   constructor(
-    @InjectModel(User.name) private userModel: mongoose.Model<User>,
+    @InjectModel(User.name) private userModel: Model<User>,
     private readonly utils: Utils,
   ) {}
 
@@ -63,7 +63,7 @@ export class UserService {
     }
   }
 
-  async findOneById(id: ObjectId): Promise<User | null> {
+  async findOneById(id: string): Promise<User | null> {
     return this.userModel.findById(id);
   }
   async findOneWithEmail(email: string): Promise<User | null> {
