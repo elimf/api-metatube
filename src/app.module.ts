@@ -12,6 +12,7 @@ import { ChannelModule } from './channel/channel.module';
 import { VideoModule } from './video/video.module';
 import { CommentModule } from './comment/comment.module';
 import { PlaylistModule } from './playlist/playlist.module';
+import { UtilsModule } from './utils/utils.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { PlaylistModule } from './playlist/playlist.module';
     VideoModule,
     CommentModule,
     PlaylistModule,
+    UtilsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
