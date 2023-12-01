@@ -21,8 +21,8 @@ export class User extends Document {
   @Prop()
   avatar: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Channel' })
-  channel: Channel;
+  @Prop({ type: Types.ObjectId, ref: 'Channel', default: null})
+  channel: Channel | null;
 
   @Prop({ type: [{ channelId: String, channelName: String }] })
   subscriptions: Array<{ channelId: string; channelName: string }>;

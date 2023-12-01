@@ -4,6 +4,7 @@ import { ChannelController } from './channel.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ChannelSchema } from './schema/channel.schema';
 import { UserSchema } from '../user/schema/user.schema';
+import { UtilsModule } from '../utils/utils.module';
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import { UserSchema } from '../user/schema/user.schema';
       { name: 'User', schema: UserSchema },
       { name: 'Channel', schema: ChannelSchema },
     ]),
+    UtilsModule,
   ],
   providers: [ChannelService],
   controllers: [ChannelController],

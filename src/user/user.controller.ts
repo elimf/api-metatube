@@ -6,15 +6,15 @@ import {
   HttpCode,
   Request,
   UploadedFiles,
-  UseInterceptors,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import {
   ApiBearerAuth,
-  ApiOperation,
   ApiResponse,
+  ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
@@ -33,29 +33,24 @@ export class UserController {
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @UseInterceptors(
-    FileFieldsInterceptor(
-      [
-        { name: 'avatar', maxCount: 1 },
-      ],
-      {
-        storage: diskStorage({
-          destination: './uploads',
-          filename: (req, file, callback) => {
-            const uniqueSuffix =
-              Date.now() + '-' + Math.round(Math.random() * 1e9);
-            const ext = extname(file.originalname);
-            const filename = `${uniqueSuffix}${ext}`;
-            callback(null, filename);
-          },
-        }),
-      },
-    ),
+    FileFieldsInterceptor([{ name: 'avatar', maxCount: 1 }], {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, callback) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          const filename = `${uniqueSuffix}${ext}`;
+          callback(null, filename);
+        },
+      }),
+    }),
   )
   @UseGuards(JwtAuthGuard)
   updateUser(
     @Request() req,
     @UploadedFiles()
-    files: { avatar?: Express.Multer.File[]; banner?: Express.Multer.File[] },
+    files: { avatar?: Express.Multer.File[] },
     @Body() updateUserDto: UpdateUserDto,
   ) {
     if (files.avatar) {
