@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import {
   Injectable,
   BadRequestException,
@@ -6,17 +5,19 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { ObjectId } from 'mongoose';
+import { Model } from 'mongoose';
 import { User, UserRole } from './schema/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
-import { promises as fsPromises } from 'fs';
+import Utils from '../utils/utils';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectModel(User.name) private userModel: mongoose.Model<User>,
+    @InjectModel(User.name) private userModel: Model<User>,
+    private readonly utils: Utils,
   ) {}
+
   async createUser(user: CreateUserDto): Promise<User> {
     // Check if the email is already in use
     const existingUser = await this.userModel.findOne({ email: user.email });
@@ -44,15 +45,14 @@ export class UserService {
         username: user.username,
         email: user.email,
         password: hashedPassword,
-        role: UserRole.USER,
         avatar: '',
-        banner: '',
-        description: '',
+        channel: '',
         subscriptions: [],
-        videos: [],
         playlists: [],
         history: [],
         likedVideos: [],
+        role: UserRole.USER,
+        timestamp: Date.now(),
       });
 
       return createdUser.save();
@@ -61,62 +61,46 @@ export class UserService {
     }
   }
 
-  async findOneById(id: ObjectId): Promise<User | null> {
+  async findOneById(id: string): Promise<User | null> {
     return this.userModel.findById(id);
   }
+
   async findOneWithEmail(email: string): Promise<User | null> {
     return await this.userModel.findOne({ email: email });
   }
-  async deleteOneById(id: string): Promise<void> {
-    const user = await this.userModel.findOne({ _id: id }).exec();
-    if (!user) {
-      // L'utilisateur n'existe pas
-      throw new NotFoundException('Utilisateur non trouvé');
-    }
-    if (user.avatar) {
-      await this.deleteFile(user.avatar);
-    }
 
-    if (user.banner) {
-      await this.deleteFile(user.banner);
-    }
-    await this.userModel.findOneAndDelete({ _id: id }).exec();
-  }
   async updateUser(id: string, updateUserDto: any): Promise<User> {
     let user: User | null = null;
-    // Récupérez l'utilisateur actuel
+    // Check if the user exists
     try {
       user = await this.userModel.findOne({ _id: id }).exec();
     } catch (error) {
-      throw new NotFoundException('Utilisateur non trouvé');
+      throw new NotFoundException('User not found');
     }
 
-    // Supprimez les anciens fichiers d'avatar ou de bannière s'ils sont présents dans updateUserDto
+    // Delete old avatar or banner files if they are present in updateUserDto
     if (updateUserDto.avatar) {
-      await this.deleteFile(user.avatar);
+      await this.utils.deleteFile(user.avatar);
     }
 
-    if (updateUserDto.banner) {
-      await this.deleteFile(user.banner);
-    }
-
-    // Mettez à jour l'utilisateur avec les nouvelles informations
+    // Update the user with the new information
     const updatedUser = await this.userModel
       .findByIdAndUpdate(id, updateUserDto, { new: true })
       .exec();
 
     return updatedUser;
   }
-  async deleteFile(filePath: string) {
-    try {
-      // Supprimez le fichier du chemin spécifié
-      await fsPromises.unlink(filePath);
-      console.log(`Fichier supprimé avec succès: ${filePath}`);
-    } catch (err) {
-      console.error(
-        `Erreur lors de la suppression du fichier ${filePath}:`,
-        err,
-      );
+
+  async deleteOneById(userId: string): Promise<void> {
+    const user = await this.userModel.findOne({ _id: userId }).exec();
+    if (!user) {
+      //
+      throw new NotFoundException('Utilisateur non trouvé');
     }
+    if (user.avatar) {
+      await this.utils.deleteFile(user.avatar);
+    }
+
+    await this.userModel.findOneAndDelete({ _id: userId }).exec();
   }
 }

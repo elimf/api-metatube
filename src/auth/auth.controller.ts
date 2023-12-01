@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { UserService } from '../user/user.service';
@@ -12,6 +11,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { User } from '../user/schema/user.schema';
+
+
 @ApiTags('Authentification')
 @Controller('auth')
 export class AuthController {

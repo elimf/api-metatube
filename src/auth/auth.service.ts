@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import * as bcrypt from 'bcrypt';
@@ -16,15 +15,14 @@ export class AuthService {
     const user = await this.userService.findOneWithEmail(email);
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...result } = user;
-      return result as User;
+      return user;
     }
     return null;
   }
 
   async login(user: User) {
     const payload = {
+      id: user._id,
       email: user.email,
       role: user.role,
       sub: {
@@ -43,6 +41,7 @@ export class AuthService {
   }
   async refreshToken(user: User) {
     const payload = {
+      id: user._id,
       email: user.email,
       role: user.role,
       sub: {

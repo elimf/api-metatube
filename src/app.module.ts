@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import { ConfigModule } from '@nestjs/config';
@@ -9,6 +8,11 @@ import { AuthModule } from './auth/auth.module';
 import { UserModule } from './user/user.module';
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ChannelModule } from './channel/channel.module';
+import { VideoModule } from './video/video.module';
+import { CommentModule } from './comment/comment.module';
+import { PlaylistModule } from './playlist/playlist.module';
+import { UtilsModule } from './utils/utils.module';
 
 @Module({
   imports: [
@@ -26,6 +30,11 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     MongooseModule.forRoot(process.env.DB_URI),
     AuthModule,
     UserModule,
+    ChannelModule,
+    VideoModule,
+    CommentModule,
+    PlaylistModule,
+    UtilsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
