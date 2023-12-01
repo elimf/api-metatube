@@ -18,9 +18,9 @@ export class Video extends Document {
   views: number;
 
   @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
-  likedBy: [User] | [];
+  likedBy: User[] | [];
 
-  @Prop({ type: [Comment] })
+  @Prop({ type: [Types.ObjectId], ref: 'Comment', default: [] })
   comments: Comment[];
 
   @Prop({ required: true })
