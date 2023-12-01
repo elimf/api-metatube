@@ -9,6 +9,7 @@ import { UserSchema } from '../user/schema/user.schema';
 import { JwtStrategy } from './strategies/jwt-strategy';
 import { RefreshJwtStrategy } from './strategies/refreshToken.strategy';
 import { PassportModule } from '@nestjs/passport';
+import { UtilsModule } from '../utils/utils.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { PassportModule } from '@nestjs/passport';
       secret: `${process.env.JWT_SECRET}`,
       signOptions: { expiresIn: 3600, algorithm: 'HS256' },
     }),
+    UtilsModule
   ],
   controllers: [AuthController],
   providers: [
