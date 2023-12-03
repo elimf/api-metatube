@@ -128,7 +128,6 @@ export class ChannelController {
     @Request() req,
     @UploadedFile() banner: Express.Multer.File,
   ): Promise<Channel> {
-    console.log(banner.path);
     if (!banner) {
       throw new NotFoundException('Banner not found');
     }
