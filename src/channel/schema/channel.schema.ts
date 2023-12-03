@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 import { Video } from '../../video/schema/video.schema';
 import { Playlist } from '../../playlist/schema/playlist.schema';
 
@@ -14,13 +14,13 @@ export class Channel extends Document {
   @Prop()
   description: string;
 
-  @Prop({ type: [Playlist] })
+  @Prop({ type: Types.ObjectId, ref: 'Playlist', default: [] })
   playlists: Playlist[];
 
   @Prop({ required: true, default: Date.now })
   timestamp: string;
 
-  @Prop({ type: [Video] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Video' }], default: [] })
   videos: Video[];
 }
 

@@ -10,12 +10,14 @@ import { CreateChannelDto } from './dto/create-channel.dto';
 import { User } from '../user/schema/user.schema';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import Utils from '../utils/utils';
+import { Video } from '../video/schema/video.schema';
 
 @Injectable()
 export class ChannelService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Channel.name) private readonly channelModel: Model<Channel>,
+    @InjectModel(Video.name) private readonly videoModel: Model<Video>,
     private readonly utils: Utils,
   ) {}
 
@@ -114,6 +116,11 @@ export class ChannelService {
       }
       if (channel.banner) {
         await this.utils.deleteFile(channel.banner);
+      }
+      for (const videoId of channel.videos) {
+        await this.utils.deleteFile(videoId.thumbnail);
+        await this.utils.deleteFile(videoId.url);
+        await this.videoModel.findOneAndDelete({ _id: videoId }).exec();
       }
 
       await this.channelModel.findOneAndDelete({ _id: user.channel }).exec();
