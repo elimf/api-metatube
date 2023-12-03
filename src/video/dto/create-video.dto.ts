@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsUrl } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { Express } from 'express';
 
 export class CreateVideoDto {
   @ApiProperty({ description: 'Title of the video' })
@@ -12,13 +14,25 @@ export class CreateVideoDto {
   @IsString()
   description: string;
 
-  @ApiProperty({ description: 'URL of the video thumbnail' })
-  @IsNotEmpty()
-  @IsUrl()
-  thumbnail: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: 'Thumbnail image file',
+  })
+  @IsOptional()
+  @Type(() => Object)
+  thumbnailFile: Express.Multer.File;
 
-  @ApiProperty({ description: 'URL of the video' })
-  @IsNotEmpty()
-  @IsUrl()
-  url: string;
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: 'Video file',
+  })
+  @IsOptional()
+  @Type(() => Object)
+  videoFile: Express.Multer.File;
+
+  thumbnailUrl?: string;
+
+  videoUrl?: string;
 }
