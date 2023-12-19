@@ -1,5 +1,6 @@
 import {
   Controller,
+   Get,
   Patch,
   Delete,
   Body,
@@ -8,6 +9,7 @@ import {
   UploadedFiles,
   UseGuards,
   UseInterceptors,
+  NotFoundException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -27,6 +29,22 @@ import { UpdateUserDto } from './dto/update-user.dto';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
+@Get()
+  @ApiOperation({ summary: 'Get user information' })
+  @ApiResponse({ status: 200, description: 'User information retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @UseGuards(JwtAuthGuard)
+  async getUserInfo(@Request() req) {
+     const userId = req.user.id;
+   // Call the method from the user service to get user information
+    const user = await this.userService.findOneById(userId);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
 
   @Patch()
   @ApiOperation({ summary: 'Update a user' })
