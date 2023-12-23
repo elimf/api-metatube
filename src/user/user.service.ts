@@ -62,7 +62,14 @@ export class UserService {
   }
 
   async findOneById(id: string): Promise<User | null> {
-    return this.userModel.findById(id);
+    const user = await this.userModel
+      .findById(id)
+      .select(
+        '-_id username avatar channel subscriptions playlists history likedVideos timestamp',
+      )
+      .exec();
+
+    return user || null;
   }
 
   async findOneWithEmail(email: string): Promise<User | null> {
