@@ -9,9 +9,6 @@ export class GetUserDto {
   @IsString()
   @ApiProperty({ example: '/uploads/avatar.jpg', description: 'The avatar path of the user' })
   avatar: string;
-
-  @IsString()
-
   constructor(username: string, avatar: string) {
     this.username = username;
     this.avatar = avatar;
