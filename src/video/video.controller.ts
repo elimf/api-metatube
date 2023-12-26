@@ -45,8 +45,6 @@ export class VideoController {
     type: Video,
   })
   async findById(@Param('id') id: string): Promise<Video> {
-    console.log(id);
-
     return this.videoService.findById(id);
   }
 
