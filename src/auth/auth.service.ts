@@ -23,11 +23,6 @@ export class AuthService {
   async login(user: User) {
     const payload = {
       id: user._id,
-      email: user.email,
-      role: user.role,
-      sub: {
-        username: user.username,
-      },
     };
     return {
       access_token: await this.jwtService.sign(payload, {
@@ -40,13 +35,8 @@ export class AuthService {
     };
   }
   async refreshToken(user: User) {
-    const payload = {
-      id: user._id,
-      email: user.email,
-      role: user.role,
-      sub: {
-        username: user.username,
-      },
+        const payload = {
+      id: user.id,
     };
     return {
       access_token: await this.jwtService.sign(payload, {
