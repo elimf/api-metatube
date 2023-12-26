@@ -24,7 +24,7 @@ export class ChannelService {
   async create(
     createChannelDto: CreateChannelDto,
     userId: string,
-  ): Promise<Channel> {
+  ): Promise<any> {
     const user = await this.userModel.findOne({ _id: userId }).exec();
     if (!user) {
       throw new NotFoundException('User not found');
@@ -37,8 +37,10 @@ export class ChannelService {
     // Add the new channel to the user's channel list
     user.channel = newChannel;
     await user.save();
-
-    return newChannel;
+    return {
+      status: 201,
+      message: `Channel ${newChannel.channelName} created successfully`,
+    };
   }
   async findAll(): Promise<Channel[]> {
     const channels = await this.channelModel.find().exec();

@@ -48,13 +48,14 @@ export class ChannelController {
   })
   @ApiResponse({ status: 400, description: 'Bad request' })
   @UseGuards(JwtAuthGuard)
+  @HttpCode(201)
   @Post()
   async createChannel(
     @Request() req,
     @Body() createChannelDto: CreateChannelDto,
-  ): Promise<Channel> {
+  ): Promise<any> {
     const userId = req.user.id;
-    return await this.channelService.create(createChannelDto, userId);
+     return await this.channelService.create(createChannelDto, userId);
   }
 
   @ApiOperation({ summary: 'Get all channels' })
