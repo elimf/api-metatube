@@ -12,7 +12,7 @@ import {
   UploadedFile,
   UseGuards,
   UseInterceptors,
-  NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ChannelService } from './channel.service';
 import { Channel } from './schema/channel.schema';
@@ -56,7 +56,7 @@ export class ChannelController {
     @Body() createChannelDto: CreateChannelDto,
   ): Promise<any> {
     const userId = req.user.id;
-     return await this.channelService.create(createChannelDto, userId);
+    return await this.channelService.create(createChannelDto, userId);
   }
 
   @ApiOperation({ summary: 'Get all channels' })
@@ -107,12 +107,12 @@ export class ChannelController {
   @ApiOperation({ summary: 'Update a channel banner' })
   @ApiResponse({
     status: 204,
-    description: 'Updated channel banner',
+    description: 'Updated channel icon',
   })
   @ApiResponse({ status: 404, description: 'Channel not found' })
   @Put()
   @UseInterceptors(
-    FileInterceptor('banner', {
+    FileInterceptor('icon', {
       storage: diskStorage({
         destination: './uploads',
         filename: (req, file, callback) => {
@@ -126,22 +126,22 @@ export class ChannelController {
     }),
   )
   @UseGuards(JwtAuthGuard)
-  async updateBanner(
+  async updateIconChannel(
     @Request() req,
-    @UploadedFile() banner: Express.Multer.File,
+    @UploadedFile() icon: Express.Multer.File,
   ): Promise<Channel> {
-    if (!banner) {
-      throw new NotFoundException('Banner not found');
+    if (!icon) {
+      throw new BadRequestException('Icon not found');
     }
 
-    return await this.channelService.updateBanner(req.user.id,banner.path);
+    return await this.channelService.updateIcon(req.user.id, icon.path);
   }
 
-  @ApiOperation({ summary: 'Delete a channel by ID' })
-  @ApiParam({ name: 'id', description: 'Channel ID' })
+  @ApiOperation({ summary: "Delete channel user's" })
   @ApiBearerAuth()
   @ApiResponse({ status: 204, description: 'Channel deleted successfully' })
   @ApiResponse({ status: 404, description: 'Channel not found' })
+  @ApiResponse({ status: 400, description: 'Icon not found' })
   @Delete()
   @HttpCode(204)
   @UseGuards(JwtAuthGuard)

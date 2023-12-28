@@ -111,7 +111,7 @@ export class ChannelService {
 
     return channel;
   }
-  async updateBanner(userId: string, bannerPath: string): Promise<Channel> {
+  async updateIcon(userId: string, iconPath: string): Promise<Channel> {
     const user = await this.userModel.findById(userId).exec();
 
     if (!user) {
@@ -121,7 +121,7 @@ export class ChannelService {
       throw new NotFoundException('User has no channel');
     }
     const channel = await this.channelModel
-      .findByIdAndUpdate(user.channel, { banner: bannerPath }, { new: true })
+      .findByIdAndUpdate(user.channel, { icon: iconPath }, { new: true })
       .exec();
 
     return channel;
@@ -138,8 +138,8 @@ export class ChannelService {
       if (!channel) {
         throw new NotFoundException('Channel not found');
       }
-      if (channel.banner) {
-        await this.utils.deleteFile(channel.banner);
+      if (channel.icon) {
+        await this.utils.deleteFile(channel.icon);
       }
       for (const videoId of channel.videos) {
         await this.utils.deleteFile(videoId.thumbnail);
@@ -154,13 +154,14 @@ export class ChannelService {
       throw new BadRequestException('User has no channel');
     }
   }
+ 
+  // Utility functions
   async getValidVideos(videoIds: Video[]): Promise<Video[]> {
     const validVideos = await this.videoModel
       .find({ _id: { $in: videoIds } })
       .exec();
     return validVideos;
   }
-
   async getValidPlaylists(playlistIds: Playlist[]): Promise<Playlist[]> {
     const validPlaylists = await this.playlistModel
       .find({ _id: { $in: playlistIds } })

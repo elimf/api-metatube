@@ -6,7 +6,6 @@ export class ChannelDTO {
   description: string;
   subscribers: number;
   videos: Video[];
-  banner: string;
   isVerified: boolean;
   playlists: Playlist[];
   icon: string;

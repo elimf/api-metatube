@@ -7,9 +7,6 @@ import { Short } from '../../short/schema/short.schema';
 
 @Schema()
 export class Channel extends Document {
-  @Prop({ default: '' })
-  banner: string;
-
   @Prop({ required: true })
   channelName: string;
 
