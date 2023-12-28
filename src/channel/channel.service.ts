@@ -11,6 +11,8 @@ import { User } from '../user/schema/user.schema';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import Utils from '../utils/utils';
 import { Video } from '../video/schema/video.schema';
+import { Playlist } from 'src/playlist/schema/playlist.schema';
+import { ChannelDTO } from './dto/channel.dto';
 
 @Injectable()
 export class ChannelService {
@@ -18,6 +20,7 @@ export class ChannelService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Channel.name) private readonly channelModel: Model<Channel>,
     @InjectModel(Video.name) private readonly videoModel: Model<Video>,
+    @InjectModel(Playlist.name) private readonly playlistModel: Model<Playlist>,
     private readonly utils: Utils,
   ) {}
 
@@ -47,7 +50,7 @@ export class ChannelService {
     return channels;
   }
 
-  async findById(id: string): Promise<Channel> {
+  async findById(id: string): Promise<ChannelDTO> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Invalid channel ID');
     }
@@ -56,8 +59,27 @@ export class ChannelService {
     if (!channel) {
       throw new NotFoundException('Channel not found');
     }
+    // Get and check the subscribers
+    const userIds = channel.subscribers || [];
+    const subscribers = await this.getValidUsers(userIds);
+    // Get and check the videos
+    const videoIds = channel.videos || [];
+    const videos = await this.getValidVideos(videoIds);
 
-    return channel;
+    // Get and check the playlists
+    const playlistIds = channel.playlists || [];
+    const playlists = await this.getValidPlaylists(playlistIds);
+    // Convert the channel object to a plain object and delete the _id field
+    const channelObject = channel.toObject({ virtuals: true });
+    delete channelObject._id;
+    delete channelObject.__v;
+    delete channelObject.id;
+    return {
+      ...channelObject,
+      videos,
+      playlists,
+      subscribers: subscribers.length,
+    };
   }
 
   async update(
@@ -131,5 +153,24 @@ export class ChannelService {
     } else {
       throw new BadRequestException('User has no channel');
     }
+  }
+  async getValidVideos(videoIds: Video[]): Promise<Video[]> {
+    const validVideos = await this.videoModel
+      .find({ _id: { $in: videoIds } })
+      .exec();
+    return validVideos;
+  }
+
+  async getValidPlaylists(playlistIds: Playlist[]): Promise<Playlist[]> {
+    const validPlaylists = await this.playlistModel
+      .find({ _id: { $in: playlistIds } })
+      .exec();
+    return validPlaylists;
+  }
+  async getValidUsers(userIds: User[]): Promise<User[]> {
+    const validUsers = await this.userModel
+      .find({ _id: { $in: userIds } })
+      .exec();
+    return validUsers;
   }
 }

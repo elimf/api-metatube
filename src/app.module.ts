@@ -13,6 +13,7 @@ import { VideoModule } from './video/video.module';
 import { CommentModule } from './comment/comment.module';
 import { PlaylistModule } from './playlist/playlist.module';
 import { UtilsModule } from './utils/utils.module';
+import { ShortModule } from './short/short.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { UtilsModule } from './utils/utils.module';
     CommentModule,
     PlaylistModule,
     UtilsModule,
+    ShortModule,
   ],
   controllers: [AppController],
   providers: [AppService],

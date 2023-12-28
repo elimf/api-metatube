@@ -32,6 +32,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ChannelDTO } from './dto/channel.dto';
 
 @ApiTags('Channel')
 @Controller('channel')
@@ -78,7 +79,7 @@ export class ChannelController {
   })
   @ApiResponse({ status: 404, description: 'Channel not found' })
   @Get(':id')
-  async findById(@Param('id') id: string): Promise<Channel> {
+  async findById(@Param('id') id: string): Promise<ChannelDTO> {
     return await this.channelService.findById(id);
   }
 
