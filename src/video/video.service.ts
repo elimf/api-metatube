@@ -20,6 +20,32 @@ export class VideoService {
     private readonly utils: Utils,
   ) {}
 
+  async findAll(): Promise<Video[]> {
+    const videos = await this.videoModel.find().exec();
+    const sortedVideos = this.metaSortVideo(videos);
+    return sortedVideos;
+  }
+
+  private metaSortVideo(videos: Video[]): Video[] {
+    // Custom sorting algorithm based on popularity and timestamp
+    return videos.sort((a, b) => {
+      const popularityA = a.views + a.likedBy.length + a.comments.length;
+      const popularityB = b.views + b.likedBy.length + b.comments.length;
+
+      // Convert timestamp strings to Date objects for comparison
+      const timestampA = new Date(a.timestamp).getTime();
+      const timestampB = new Date(b.timestamp).getTime();
+
+      // Sort by popularity in descending order
+      if (popularityA !== popularityB) {
+        return popularityB - popularityA;
+      }
+
+      // If popularity is the same, sort by timestamp in descending order
+      return timestampB - timestampA;
+    });
+  }
+
   async uploadVideo(
     createVideoDto: CreateVideoDto,
     userId: string,
@@ -95,7 +121,7 @@ export class VideoService {
 
       await this.utils.deleteFile(video.thumbnail);
       await this.utils.deleteFile(video.url);
-      await this.videoModel.deleteOne({_id:videoId}).exec();
+      await this.videoModel.deleteOne({ _id: videoId }).exec();
       await channel.save();
     } else {
       throw new BadRequestException('User has no channel');

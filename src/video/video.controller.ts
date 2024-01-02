@@ -37,6 +37,16 @@ export class VideoController {
     private readonly utils: Utils,
   ) {}
 
+  @Get()
+  @ApiOperation({ summary: 'Get all videos' })
+  @ApiResponse({
+    status: 200,
+    description: 'List of videos.',
+    type: [Video], // Assuming your VideoService returns an array of Video objects.
+  })
+  async findAll(): Promise<Video[]> {
+    return this.videoService.findAll();
+  }
   @Get(':id')
   @ApiOperation({ summary: 'Find a video by ID' })
   @ApiResponse({
