@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   BadRequestException,
   Injectable,
@@ -10,6 +11,7 @@ import Utils from '../utils/utils';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { User } from '../user/schema/user.schema';
 import { Channel } from '../channel/schema/channel.schema';
+import { VideoDetail } from './dto/get-videoDetail.dto';
 
 @Injectable()
 export class VideoService {
@@ -23,7 +25,13 @@ export class VideoService {
   async findAll(): Promise<Video[]> {
     const videos = await this.videoModel.find().exec();
     const sortedVideos = this.metaSortVideo(videos);
-    return sortedVideos;
+    const videosWithoutLikedByAndComments = sortedVideos.map((video) => {
+      const { likedBy, comments, __v, ...videoWithoutLikedByAndComments } =
+        video.toObject();
+      return videoWithoutLikedByAndComments;
+    });
+
+    return videosWithoutLikedByAndComments;
   }
 
   private metaSortVideo(videos: Video[]): Video[] {
@@ -81,7 +89,7 @@ export class VideoService {
     return newVideo;
   }
 
-  async findById(id: string): Promise<Video> {
+  async findById(id: string): Promise<VideoDetail> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Invalid Video ID');
     }
@@ -89,7 +97,30 @@ export class VideoService {
     if (!video) {
       throw new NotFoundException('Video not found');
     }
-    return video;
+    // Trouver le document Channel contenant l'ID de la vidéo dans le tableau de vidéos
+    const channel = await this.channelModel
+      .findOne({ videos: new Types.ObjectId(id) })
+      .exec();
+
+    if (!channel) {
+      throw new NotFoundException('Channel not found');
+    }
+    const videoDetail: VideoDetail = {
+      title: video.title,
+      description: video.description,
+      thumbnail: video.thumbnail,
+      views: video.views,
+      url: video.url,
+      timestamp: video.timestamp,
+      likedBy: [], // Assurez-vous que likedBy est bien défini dans votre modèle de données
+      comments: [], // Vous pouvez remplir cette partie plus tard, selon vos besoins
+      channel: {
+        id: channel._id,
+        channelName: channel.channelName,
+        icon: channel.icon,
+      },
+    };
+    return videoDetail;
   }
 
   async update(id: string, video: Video): Promise<Video> {

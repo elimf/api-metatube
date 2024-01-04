@@ -28,6 +28,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import * as mime from 'mime-types';
+import { VideoDetail } from './dto/get-videoDetail.dto';
 
 @ApiTags('Video')
 @Controller('video')
@@ -54,7 +55,7 @@ export class VideoController {
     description: 'The video has been found.',
     type: Video,
   })
-  async findById(@Param('id') id: string): Promise<Video> {
+  async findById(@Param('id') id: string): Promise<VideoDetail> {
     return this.videoService.findById(id);
   }
 
