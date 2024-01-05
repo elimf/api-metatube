@@ -7,13 +7,13 @@ export class Playlist extends Document {
   @Prop({ required: true })
   title: string;
 
-  @Prop({ type: [String] }) // Assuming the playlist contains a list of videoIds
+  @Prop({ type: [String] }) 
   videos: string[];
 
-  @Prop({ default: false }) // Playlist privacy flag, default to public
+  @Prop({ default: false }) 
   isPrivate: boolean;
 
-  @Prop({ type: [String], default: [] }) // List of user IDs who can access the private playlist
+  @Prop({ type: [String], default: [] }) 
   allowedUsers: string[];
 
   @Prop({ required: true, default: Date.now })

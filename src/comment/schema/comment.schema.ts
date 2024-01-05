@@ -10,9 +10,6 @@ export class Comment extends Document {
     @Prop({ type: [String], default: [] })
     likedBy: string[];
   
-    @Prop({ type: [String], default: [] })
-    dislikedBy: string[];
-
     @Prop({ required: true })
     userId: string;
     

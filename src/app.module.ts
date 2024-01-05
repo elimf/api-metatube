@@ -14,6 +14,7 @@ import { CommentModule } from './comment/comment.module';
 import { PlaylistModule } from './playlist/playlist.module';
 import { UtilsModule } from './utils/utils.module';
 import { ShortModule } from './short/short.module';
+import { LikeModule } from './like/like.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { ShortModule } from './short/short.module';
     AuthModule,
     ChannelModule,
     CommentModule,
+    LikeModule,
     PlaylistModule,
     ShortModule,
     UserModule,
