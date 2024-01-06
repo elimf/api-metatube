@@ -20,7 +20,6 @@ export class RefreshJwtGuard extends AuthGuard('jwt-refresh') {
       throw new UnauthorizedException('Missing JWT token');
     }
     const payload = await this.verifyJwtToken(token);
-    console.log(`payload: ${JSON.stringify(payload)}`);
 
     request['user'] = payload;
     return true;
