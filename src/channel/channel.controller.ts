@@ -102,9 +102,9 @@ export class ChannelController {
   }
 
   @ApiBearerAuth()
-  @ApiBody({ type: BannerUpdateDto, description: 'Updated channel banner' })
+  @ApiBody({ type: BannerUpdateDto, description: 'Updated channel icon' })
   @ApiConsumes('multipart/form-data')
-  @ApiOperation({ summary: 'Update a channel banner' })
+  @ApiOperation({ summary: 'Update a channel icon' })
   @ApiResponse({
     status: 204,
     description: 'Updated channel icon',
