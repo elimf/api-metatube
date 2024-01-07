@@ -4,9 +4,9 @@ import { Channel } from '../../channel/schema/channel.schema';
 import { Playlist } from '../../playlist/schema/playlist.schema';
 
 export enum UserRole {
-    USER = 'user',
-    ADMIN = 'admin',
-  }
+  USER = 'user',
+  ADMIN = 'admin',
+}
 @Schema()
 export class User extends Document {
   @Prop({ required: true, unique: true })
@@ -21,17 +21,17 @@ export class User extends Document {
   @Prop()
   avatar: string;
 
-  @Prop({ type: Types.ObjectId, ref: 'Channel', default: null})
+  @Prop({ type: Types.ObjectId, ref: 'Channel', default: null })
   channel: Channel | null;
 
   @Prop({ type: [{ channelId: String, channelName: String }] })
-  subscriptions: Array<{ channelId: string; channelName: string }>;
+  subscriptions: Array<{ channelId: string }>;
 
   @Prop({ type: [Playlist] })
   playlists: Playlist[];
 
-  @Prop({ type: [{ videoId: String, title: String, timestamp: String }] })
-  history: Array<{ videoId: string; title: string; timestamp: string }>;
+  @Prop({ type: [{ videoId: String, timestamp: String }] })
+  history: Array<{ videoId: string; timestamp: string }>;
 
   @Prop({ type: [String] })
   likedVideos: string[];

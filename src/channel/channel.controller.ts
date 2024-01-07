@@ -26,7 +26,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { CreateChannelDto } from './dto/create-channel.dto';
-import { BannerUpdateDto } from './dto/banner-update.dto';
+import { IconUpdateDto } from './dto/icon-update.dto';
 import { UpdateChannelDto } from './dto/update-channel.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { diskStorage } from 'multer';
@@ -102,7 +102,7 @@ export class ChannelController {
   }
 
   @ApiBearerAuth()
-  @ApiBody({ type: BannerUpdateDto, description: 'Updated channel icon' })
+  @ApiBody({ type: IconUpdateDto, description: 'Updated channel icon' })
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Update a channel icon' })
   @ApiResponse({

@@ -3,13 +3,13 @@ import { IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Express } from 'express';
 
-export class BannerUpdateDto {
+export class IconUpdateDto {
   @ApiProperty({
     type: 'string',
     format: 'binary',
-    description: 'Banner image file',
+    description: 'Icon image file',
   })
   @IsNotEmpty()
   @Type(() => Object)
-  banner: Express.Multer.File;
+  icon: Express.Multer.File;
 }
