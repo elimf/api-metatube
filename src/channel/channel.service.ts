@@ -154,20 +154,24 @@ export class ChannelService {
       throw new BadRequestException('User has no channel');
     }
   }
- 
+
   // Utility functions
   async getValidVideos(videoIds: Video[]): Promise<Video[]> {
     const validVideos = await this.videoModel
       .find({ _id: { $in: videoIds } })
+      .select('-__v')
       .exec();
     return validVideos;
   }
+
   async getValidPlaylists(playlistIds: Playlist[]): Promise<Playlist[]> {
     const validPlaylists = await this.playlistModel
       .find({ _id: { $in: playlistIds } })
+      .select('-__v')
       .exec();
     return validPlaylists;
   }
+
   async getValidUsers(userIds: User[]): Promise<User[]> {
     const validUsers = await this.userModel
       .find({ _id: { $in: userIds } })
