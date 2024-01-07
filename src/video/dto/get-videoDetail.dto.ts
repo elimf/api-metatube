@@ -1,4 +1,5 @@
 export interface VideoDetail {
+  _id: string;
   title: string;
   description: string;
   thumbnail: string;
@@ -6,8 +7,9 @@ export interface VideoDetail {
   url: string;
   timestamp: string;
   likedBy: string[];
-  comments?: CommentVideoDetail[]; // Ajout de la propriété 'comments' de type Comment[]
-  channel?: ChannelVideoDetail;
+  comments?: CommentVideoDetail[];
+  channel: ChannelVideoDetail;
+  suggestions: Suggestions[];
 }
 
 export interface CommentVideoDetail {
@@ -23,7 +25,16 @@ export interface CommentVideoDetail {
 }
 
 export interface ChannelVideoDetail {
-  id: string;
+  _id: string;
   channelName: string;
   icon: string;
+  subscribers: number;
+}
+export interface Suggestions {
+  _id: string;
+  title: string;
+  thumbnail: string;
+  timestamp: string;
+  url: string;
+  channel: ChannelVideoDetail;
 }

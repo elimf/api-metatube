@@ -1,11 +1,11 @@
+import { AllVideo } from '../../video/dto/get-all-video';
 import { Playlist } from '../../playlist/schema/playlist.schema';
-import { Video } from "../../video/schema/video.schema";
 
 export class ChannelDTO {
   channelName: string;
   description: string;
   subscribers: number;
-  videos: Video[];
+  videos: AllVideo[];
   isVerified: boolean;
   playlists: Playlist[];
   icon: string;

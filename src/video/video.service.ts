@@ -12,6 +12,7 @@ import { CreateVideoDto } from './dto/create-video.dto';
 import { User } from '../user/schema/user.schema';
 import { Channel } from '../channel/schema/channel.schema';
 import { VideoDetail } from './dto/get-videoDetail.dto';
+import { AllVideo } from './dto/get-all-video';
 
 @Injectable()
 export class VideoService {
@@ -22,16 +23,39 @@ export class VideoService {
     private readonly utils: Utils,
   ) {}
 
-  async findAll(): Promise<Video[]> {
+  async findAll(): Promise<AllVideo[]> {
     const videos = await this.videoModel.find().exec();
     const sortedVideos = this.metaSortVideo(videos);
-    const videosWithoutLikedByAndComments = sortedVideos.map((video) => {
-      const { likedBy, comments, __v, ...videoWithoutLikedByAndComments } =
-        video.toObject();
-      return videoWithoutLikedByAndComments;
-    });
 
-    return videosWithoutLikedByAndComments;
+    const videosWithAssociatedChannel: AllVideo[] = [];
+
+    for (const video of sortedVideos) {
+      const channel = await this.channelModel
+        .findOne({ videos: video._id })
+        .exec();
+
+      if (channel) {
+        const videoDetail: AllVideo = {
+          _id: video._id,
+          title: video.title,
+          description: video.description,
+          thumbnail: video.thumbnail,
+          views: video.views,
+          url: video.url,
+          timestamp: video.timestamp,
+          channel: {
+            _id: channel._id,
+            channelName: channel.channelName,
+            icon: channel.icon,
+            subscribers: channel.subscribers.length,
+          },
+        };
+
+        videosWithAssociatedChannel.push(videoDetail);
+      }
+    }
+
+    return videosWithAssociatedChannel;
   }
 
   private metaSortVideo(videos: Video[]): Video[] {
@@ -93,11 +117,13 @@ export class VideoService {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Invalid Video ID');
     }
+
     const video = await this.videoModel.findById(id).exec();
     if (!video) {
       throw new NotFoundException('Video not found');
     }
-    // Trouver le document Channel contenant l'ID de la vidéo dans le tableau de vidéos
+
+    // Find the channel of the video
     const channel = await this.channelModel
       .findOne({ videos: new Types.ObjectId(id) })
       .exec();
@@ -105,21 +131,80 @@ export class VideoService {
     if (!channel) {
       throw new NotFoundException('Channel not found');
     }
+
+    // Get suggested videos from the same channel
+    const suggestedVideosFromSameChannel = await this.videoModel
+      .find({ _id: { $ne: new Types.ObjectId(id) }, channel: channel._id })
+      .limit(3) // Limit the number of suggestions from the same channel to 3, adjust as needed
+      .exec();
+
+    // Get suggested videos from other channels
+    const suggestedVideosFromOtherChannels = await this.videoModel
+      .find({ _id: { $ne: new Types.ObjectId(id) } })
+      .limit(3) // Limit the number of suggestions from other channels to 3, adjust as needed
+      .exec();
+
+    // Fetch details for each suggested video's channel (only for videos from other channels)
+    const suggestedVideosWithChannelDetails = await Promise.all(
+      suggestedVideosFromOtherChannels.map(async (suggestedVideo) => {
+        const suggestedVideoChannel = await this.channelModel
+          .findOne({ videos: suggestedVideo._id })
+          .exec();
+
+        return {
+          _id: suggestedVideo._id,
+          title: suggestedVideo.title,
+          thumbnail: suggestedVideo.thumbnail,
+          views: suggestedVideo.views,
+          timestamp: suggestedVideo.timestamp,
+          url: suggestedVideo.url,
+          channel: suggestedVideoChannel
+            ? {
+                _id: suggestedVideoChannel._id,
+                channelName: suggestedVideoChannel.channelName,
+                icon: suggestedVideoChannel.icon,
+                subscribers: suggestedVideoChannel.subscribers.length,
+              }
+            : null,
+        };
+      }),
+    );
+
     const videoDetail: VideoDetail = {
+      _id: video._id,
       title: video.title,
       description: video.description,
       thumbnail: video.thumbnail,
       views: video.views,
       url: video.url,
       timestamp: video.timestamp,
-      likedBy: [], // Assurez-vous que likedBy est bien défini dans votre modèle de données
-      comments: [], // Vous pouvez remplir cette partie plus tard, selon vos besoins
+      likedBy: [],
+      comments: [],
       channel: {
-        id: channel._id,
+        _id: channel._id,
         channelName: channel.channelName,
         icon: channel.icon,
+        subscribers: channel.subscribers.length,
       },
+      suggestions: [
+        ...suggestedVideosFromSameChannel.map((suggestedVideo) => ({
+          _id: suggestedVideo._id,
+          title: suggestedVideo.title,
+          thumbnail: suggestedVideo.thumbnail,
+          views: suggestedVideo.views,
+          timestamp: suggestedVideo.timestamp,
+          url: suggestedVideo.url,
+          channel: {
+            _id: channel._id,
+            channelName: channel.channelName,
+            icon: channel.icon,
+            subscribers: channel.subscribers.length,
+          },
+        })),
+        ...suggestedVideosWithChannelDetails,
+      ],
     };
+
     return videoDetail;
   }
 

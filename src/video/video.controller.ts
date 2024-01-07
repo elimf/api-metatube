@@ -29,6 +29,7 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import * as mime from 'mime-types';
 import { VideoDetail } from './dto/get-videoDetail.dto';
+import { AllVideo } from './dto/get-all-video';
 
 @ApiTags('Video')
 @Controller('video')
@@ -43,9 +44,8 @@ export class VideoController {
   @ApiResponse({
     status: 200,
     description: 'List of videos.',
-    type: [Video], // Assuming your VideoService returns an array of Video objects.
   })
-  async findAll(): Promise<Video[]> {
+  async findAll(): Promise<AllVideo[]> {
     return this.videoService.findAll();
   }
   @Get(':id')

@@ -13,6 +13,7 @@ import Utils from '../utils/utils';
 import { Video } from '../video/schema/video.schema';
 import { Playlist } from 'src/playlist/schema/playlist.schema';
 import { ChannelDTO } from './dto/channel.dto';
+import { AllVideo } from '../video/dto/get-all-video';
 
 @Injectable()
 export class ChannelService {
@@ -156,12 +157,37 @@ export class ChannelService {
   }
 
   // Utility functions
-  async getValidVideos(videoIds: Video[]): Promise<Video[]> {
+  async getValidVideos(videoIds: Video[]): Promise<AllVideo[]> {
+    // Requête pour obtenir les vidéos avec les détails du canal
     const validVideos = await this.videoModel
       .find({ _id: { $in: videoIds } })
       .select('-__v')
       .exec();
-    return validVideos;
+
+    // Itérer sur chaque vidéo et chercher les détails du canal
+    const videosWithChannelDetails = await Promise.all(
+      validVideos.map(async (video) => {
+        // Chercher les détails du canal pour la vidéo actuelle
+        const channelDetails = await this.channelModel
+          .findOne({ videos: video._id }) 
+          .select('-__v')
+          .exec();
+
+        // Retourner un nouvel objet avec les détails du canal inclus
+        return {
+          ...video.toObject(),
+          channel: {
+            _id: channelDetails._id,
+            channelName: channelDetails.channelName,
+            icon: channelDetails.icon,
+            subscribers: channelDetails.subscribers.length,
+          },
+        };
+      }),
+    );
+
+    // Retourne le tableau final avec les détails du canal inclus
+    return videosWithChannelDetails;
   }
 
   async getValidPlaylists(playlistIds: Playlist[]): Promise<Playlist[]> {

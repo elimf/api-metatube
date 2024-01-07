@@ -13,7 +13,7 @@ export class Channel extends Document {
   @Prop({ default: '' })
   description: string;
 
-  @Prop({ default: '' })
+  @Prop({ default: 'https://via.placeholder.com/400' })
   icon: string;
 
   @Prop({ default: false })
@@ -31,7 +31,7 @@ export class Channel extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Short', default: [] })
   shorts: Short[];
 
-  @Prop({ type: [{ type: Types.ObjectId, ref: 'Video' }], default: [] })
+  @Prop({ type: [{ type: Types.ObjectId, ref: 'Videos' }], default: [] })
   videos: Video[];
 }
 
