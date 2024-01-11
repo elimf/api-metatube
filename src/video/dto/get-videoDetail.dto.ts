@@ -1,3 +1,5 @@
+import { Like } from "../../like/schema/like.schema";
+
 export interface VideoDetail {
   _id: string;
   title: string;
@@ -6,10 +8,11 @@ export interface VideoDetail {
   views: number;
   url: string;
   timestamp: string;
-  likedBy: string[];
+  likedBy: Like[];
   comments?: CommentVideoDetail[];
   channel: ChannelVideoDetail;
   suggestions: Suggestions[];
+  liked?:boolean;
 }
 
 export interface CommentVideoDetail {

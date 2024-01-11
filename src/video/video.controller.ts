@@ -24,6 +24,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/jwt-auth-optionnal.guard';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
@@ -55,8 +56,17 @@ export class VideoController {
     description: 'The video has been found.',
     type: Video,
   })
-  async findById(@Param('id') id: string): Promise<VideoDetail> {
-    return this.videoService.findById(id);
+  @UseGuards(OptionalJwtAuthGuard)
+  async findById(
+    @Request() req,
+    @Param('id') id: string,
+  ): Promise<VideoDetail> {
+    if (req.user) {
+      const userId = req.user.id;
+      return this.videoService.findById(id, userId);
+    }else{
+      return this.videoService.findById(id);
+    }
   }
 
   @ApiBearerAuth()

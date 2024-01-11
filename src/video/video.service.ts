@@ -13,6 +13,7 @@ import { User } from '../user/schema/user.schema';
 import { Channel } from '../channel/schema/channel.schema';
 import { VideoDetail } from './dto/get-videoDetail.dto';
 import { AllVideo } from './dto/get-all-video';
+import { Like } from '../like/schema/like.schema';
 
 @Injectable()
 export class VideoService {
@@ -20,6 +21,7 @@ export class VideoService {
     @InjectModel(Channel.name) private readonly channelModel: Model<Channel>,
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Video.name) private readonly videoModel: Model<Video>,
+    @InjectModel(Like.name) private readonly likeModel: Model<Like>,
     private readonly utils: Utils,
   ) {}
 
@@ -113,7 +115,7 @@ export class VideoService {
     return newVideo;
   }
 
-  async findById(id: string): Promise<VideoDetail> {
+  async findById(id: string, userId?: string): Promise<VideoDetail> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Invalid Video ID');
     }
@@ -169,7 +171,13 @@ export class VideoService {
         };
       }),
     );
-
+    let userLikedVideo = false;    
+    if (userId) {
+      const likeEntry = await this.likeModel
+        .findOne({ userId, entityId: id })
+        .exec();
+      userLikedVideo = !!likeEntry;
+    }
     const videoDetail: VideoDetail = {
       _id: video._id,
       title: video.title,
@@ -178,7 +186,7 @@ export class VideoService {
       views: video.views,
       url: video.url,
       timestamp: video.timestamp,
-      likedBy: [],
+      likedBy: video.likedBy,
       comments: [],
       channel: {
         _id: channel._id,
@@ -203,6 +211,7 @@ export class VideoService {
         })),
         ...suggestedVideosWithChannelDetails,
       ],
+      liked: userLikedVideo,
     };
 
     return videoDetail;

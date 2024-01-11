@@ -32,6 +32,7 @@ export class LikeController {
         userId,
         createLikeDto.entityId,
         createLikeDto.entityType,
+        existingLike._id,
       );
       return { message: 'Like removed successfully.' };
     } else {

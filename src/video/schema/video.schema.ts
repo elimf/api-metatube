@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Comment } from '../../comment/schema/comment.schema';
-import { User } from '../../user/schema/user.schema';
+import { Like } from '../../like/schema/like.schema';
 
 @Schema()
 export class Video extends Document {
@@ -17,8 +17,8 @@ export class Video extends Document {
   @Prop({ default: 0 })
   views: number;
 
-  @Prop({ type: [Types.ObjectId], ref: 'User', default: [] })
-  likedBy: User[] | [];
+  @Prop({ type: [Types.ObjectId], ref: 'Like', default: [] })
+  likedBy: Like[] | [];
 
   @Prop({ type: [Types.ObjectId], ref: 'Comment', default: [] })
   comments: Comment[];
