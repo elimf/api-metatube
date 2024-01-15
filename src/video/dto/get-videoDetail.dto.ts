@@ -24,7 +24,7 @@ export interface CommentVideoDetail {
   };
   commentText: string;
   timestamp: number;
-  replies?: Comment[];
+  replies?: CommentVideoDetail[];
 }
 
 export interface ChannelVideoDetail {

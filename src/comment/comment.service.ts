@@ -20,33 +20,44 @@ export class CommentService {
     createCommentDto: CreateCommentDto,
     userId: string,
   ): Promise<CommentDetail> {
-    const video = await this.videoModel
-      .findById(createCommentDto.videoId)
-      .exec();
-    if (!video) {
-      throw new NotFoundException(`Video not found`);
+    const { videoId, commentId, text } = createCommentDto;
+
+    const video = await this.findVideo(videoId);
+    const user = await this.findUser(userId);
+
+    if (commentId) {
+      const parentComment = await this.findComment(commentId);
+      if (!parentComment) {
+        throw new NotFoundException(`Parent comment not found`);
+      }
+      const createdComment = new this.commentModel({
+        text: text,
+        userId,
+      });
+      await createdComment.save();
+
+      // Utilisez l'opération $push pour ajouter l'ID du commentaire créé aux réponses du commentaire parent
+      const updateOperation = {
+        $push: { replies: createdComment._id },
+      };
+
+      // Mettez à jour le commentaire parent avec l'opération $push
+      await this.commentModel.findByIdAndUpdate(
+        parentComment._id,
+        updateOperation,
+      );
+
+      return this.createCommentObject(createdComment, userId, user);
     }
-    const user = await this.userModel.findById(userId).exec();
+
     const createdComment = new this.commentModel({
-      text: createCommentDto.text,
+      text: text,
       userId,
     });
     video.comments.push(createdComment._id);
     await video.save();
-    const savedComment = await createdComment.save();
-    const commentObject: CommentDetail = {
-      id: savedComment._id,
-      user: {
-        id: userId,
-        name: user.username,
-        avatar: user.avatar,
-      },
-      replies: [],
-      commentText: savedComment.text,
-      timestamp: +savedComment.timestamp,
-    };
 
-    return commentObject;
+    return this.createCommentObject(createdComment, userId, user);
   }
 
   async updateComment(
@@ -69,5 +80,48 @@ export class CommentService {
       { $pull: { comments: id } },
     );
     await this.commentModel.deleteOne({ _id: id, userId }).exec();
+  }
+
+  // Helper functions
+  async findVideo(videoId: string) {
+    const video = await this.videoModel.findById(videoId).exec();
+    if (!video) {
+      throw new NotFoundException(`Video not found`);
+    }
+    return video;
+  }
+
+  async findUser(userId: string) {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(`User not found`);
+    }
+    return user;
+  }
+
+  async findComment(commentId: string) {
+    const comment = await this.commentModel.findById(commentId).exec();
+    if (!comment) {
+      throw new NotFoundException(`Comment not found`);
+    }
+    return comment;
+  }
+
+  private createCommentObject(
+    comment: Comment,
+    userId: string,
+    user: User,
+  ): CommentDetail {
+    return {
+      id: comment._id,
+      user: {
+        id: userId,
+        name: user.username,
+        avatar: user.avatar,
+      },
+      replies: [],
+      commentText: comment.text,
+      timestamp: +comment.timestamp,
+    };
   }
 }

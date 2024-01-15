@@ -8,6 +8,7 @@ import {
   Request,
   HttpStatus,
   UseGuards,
+  HttpCode,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -29,11 +30,12 @@ export class CommentController {
   ) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new comment' })
+  @ApiOperation({ summary: 'Create a new comment or answer' })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'Comment created successfully.',
+    description: 'Comment or answer created successfully.',
   })
+  @HttpCode(201)
   @UseGuards(JwtAuthGuard)
   async createComment(@Request() req, @Body() commentDto: CreateCommentDto) {
     const userId = req.user.id;

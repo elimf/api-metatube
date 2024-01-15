@@ -9,4 +9,8 @@ export class CreateCommentDto {
   @IsString()
   @ApiProperty({ required: true })
   videoId: string;
+
+  @IsString()
+  @ApiProperty({ required: false })
+  commentId?: string;
 }

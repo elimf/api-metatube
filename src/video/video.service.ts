@@ -11,7 +11,7 @@ import Utils from '../utils/utils';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { User } from '../user/schema/user.schema';
 import { Channel } from '../channel/schema/channel.schema';
-import { VideoDetail } from './dto/get-videoDetail.dto';
+import { CommentVideoDetail, VideoDetail } from './dto/get-videoDetail.dto';
 import { AllVideo } from './dto/get-all-video';
 import { Like } from '../like/schema/like.schema';
 import { Comment } from '../comment/schema/comment.schema';
@@ -149,14 +149,26 @@ export class VideoService {
     };
 
     const commentsForVideo = await this.findCommentsForVideo(video);
+
     videoDetail.comments = await Promise.all(
       commentsForVideo.map(async (comment) => {
         const userDetails = await this.findUserDetails(comment);
+        const replies = await this.findRepliesForComment(comment);
+
+        // Utilisez Promise.all pour attendre la résolution de toutes les promesses dans le tableau
+        const resolvedReplies = await Promise.all(
+          replies.map(async (reply) => ({
+            id: reply._id,
+            user: await this.findUserDetails(reply),
+            commentText: reply.text,
+            timestamp: +reply.timestamp,
+          })),
+        );
 
         return {
           id: comment._id,
           user: userDetails,
-          replies: [], // You may need to fetch replies similarly if they are stored separately
+          replies: resolvedReplies,
           commentText: comment.text,
           timestamp: +comment.timestamp,
         };
@@ -235,7 +247,7 @@ export class VideoService {
       return timestampB - timestampA;
     });
   }
-   async findChannel(id: string) {
+  async findChannel(id: string) {
     const channel = await this.channelModel
       .findOne({ videos: new Types.ObjectId(id) })
       .exec();
@@ -307,5 +319,11 @@ export class VideoService {
       name: user.username,
       avatar: user.avatar,
     };
+  }
+  async findRepliesForComment(comment: any){
+    const replies = await this.commentModel
+      .find({ _id: { $in: comment.replies } })
+      .exec();
+    return replies;
   }
 }
