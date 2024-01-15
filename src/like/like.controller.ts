@@ -1,5 +1,19 @@
-import { Controller, Put, Body, HttpStatus, UseGuards, Request } from '@nestjs/common';
-import { ApiTags, ApiResponse, ApiBody, ApiBearerAuth, ApiOperation } from '@nestjs/swagger'; // Importez ApiBody pour définir le modèle de corps de la requête
+import {
+  Controller,
+  Put,
+  Body,
+  HttpStatus,
+  UseGuards,
+  Request,
+  HttpCode,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+  ApiOperation,
+} from '@nestjs/swagger'; // Importez ApiBody pour définir le modèle de corps de la requête
 import { LikeService } from './like.service';
 import { CreateLikeDto } from './dto/create-like.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -12,12 +26,13 @@ export class LikeController {
 
   @Put()
   @ApiOperation({ summary: 'Manage your like' })
-  @ApiBody({ type: CreateLikeDto }) 
+  @ApiBody({ type: CreateLikeDto })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Like added or removed successfully.',
   })
   @UseGuards(JwtAuthGuard)
+  @HttpCode(200)
   async manageLike(@Request() req, @Body() createLikeDto: CreateLikeDto) {
     const userId = req.user.id;
     const existingLike = await this.likeService.findLike(
@@ -34,15 +49,21 @@ export class LikeController {
         createLikeDto.entityType,
         existingLike._id,
       );
-      return { message: 'Like removed successfully.' };
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Like removed successfully.',
+      };
     } else {
       // Si le like n'existe pas, l'ajouter
-      const addedLike = await this.likeService.addLike(
+      await this.likeService.addLike(
         userId,
         createLikeDto.entityId,
         createLikeDto.entityType,
       );
-      return addedLike;
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Like added successfully.',
+      };
     }
   }
 }

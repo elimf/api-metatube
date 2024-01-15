@@ -14,6 +14,7 @@ import { Channel } from '../channel/schema/channel.schema';
 import { VideoDetail } from './dto/get-videoDetail.dto';
 import { AllVideo } from './dto/get-all-video';
 import { Like } from '../like/schema/like.schema';
+import { Comment } from '../comment/schema/comment.schema';
 
 @Injectable()
 export class VideoService {
@@ -22,6 +23,7 @@ export class VideoService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Video.name) private readonly videoModel: Model<Video>,
     @InjectModel(Like.name) private readonly likeModel: Model<Like>,
+    @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
     private readonly utils: Utils,
   ) {}
 
@@ -60,26 +62,6 @@ export class VideoService {
     return videosWithAssociatedChannel;
   }
 
-  private metaSortVideo(videos: Video[]): Video[] {
-    // Custom sorting algorithm based on popularity and timestamp
-    return videos.sort((a, b) => {
-      const popularityA = a.views + a.likedBy.length + a.comments.length;
-      const popularityB = b.views + b.likedBy.length + b.comments.length;
-
-      // Convert timestamp strings to Date objects for comparison
-      const timestampA = new Date(a.timestamp).getTime();
-      const timestampB = new Date(b.timestamp).getTime();
-
-      // Sort by popularity in descending order
-      if (popularityA !== popularityB) {
-        return popularityB - popularityA;
-      }
-
-      // If popularity is the same, sort by timestamp in descending order
-      return timestampB - timestampA;
-    });
-  }
-
   async uploadVideo(
     createVideoDto: CreateVideoDto,
     userId: string,
@@ -116,68 +98,20 @@ export class VideoService {
   }
 
   async findById(id: string, userId?: string): Promise<VideoDetail> {
-    if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('Invalid Video ID');
-    }
+    const video = await this.findVideo(id);
+    const channel = await this.findChannel(id);
+    const suggestedVideosFromSameChannel =
+      await this.findSuggestedVideosFromSameChannel(id);
+    const suggestedVideosFromOtherChannels =
+      await this.findSuggestedVideosFromOtherChannels(id);
+    const suggestedVideosWithChannelDetails =
+      await this.findSuggestedVideosWithChannelDetails(
+        suggestedVideosFromOtherChannels,
+      );
+    const userLikedVideo = userId
+      ? await this.findUserLikedVideo(userId, id)
+      : false;
 
-    const video = await this.videoModel.findById(id).exec();
-    if (!video) {
-      throw new NotFoundException('Video not found');
-    }
-
-    // Find the channel of the video
-    const channel = await this.channelModel
-      .findOne({ videos: new Types.ObjectId(id) })
-      .exec();
-
-    if (!channel) {
-      throw new NotFoundException('Channel not found');
-    }
-
-    // Get suggested videos from the same channel
-    const suggestedVideosFromSameChannel = await this.videoModel
-      .find({ _id: { $ne: new Types.ObjectId(id) }, channel: channel._id })
-      .limit(3) // Limit the number of suggestions from the same channel to 3, adjust as needed
-      .exec();
-
-    // Get suggested videos from other channels
-    const suggestedVideosFromOtherChannels = await this.videoModel
-      .find({ _id: { $ne: new Types.ObjectId(id) } })
-      .limit(3) // Limit the number of suggestions from other channels to 3, adjust as needed
-      .exec();
-
-    // Fetch details for each suggested video's channel (only for videos from other channels)
-    const suggestedVideosWithChannelDetails = await Promise.all(
-      suggestedVideosFromOtherChannels.map(async (suggestedVideo) => {
-        const suggestedVideoChannel = await this.channelModel
-          .findOne({ videos: suggestedVideo._id })
-          .exec();
-
-        return {
-          _id: suggestedVideo._id,
-          title: suggestedVideo.title,
-          thumbnail: suggestedVideo.thumbnail,
-          views: suggestedVideo.views,
-          timestamp: suggestedVideo.timestamp,
-          url: suggestedVideo.url,
-          channel: suggestedVideoChannel
-            ? {
-                _id: suggestedVideoChannel._id,
-                channelName: suggestedVideoChannel.channelName,
-                icon: suggestedVideoChannel.icon,
-                subscribers: suggestedVideoChannel.subscribers.length,
-              }
-            : null,
-        };
-      }),
-    );
-    let userLikedVideo = false;    
-    if (userId) {
-      const likeEntry = await this.likeModel
-        .findOne({ userId, entityId: id })
-        .exec();
-      userLikedVideo = !!likeEntry;
-    }
     const videoDetail: VideoDetail = {
       _id: video._id,
       title: video.title,
@@ -213,6 +147,21 @@ export class VideoService {
       ],
       liked: userLikedVideo,
     };
+
+    const commentsForVideo = await this.findCommentsForVideo(video);
+    videoDetail.comments = await Promise.all(
+      commentsForVideo.map(async (comment) => {
+        const userDetails = await this.findUserDetails(comment);
+
+        return {
+          id: comment._id,
+          user: userDetails,
+          replies: [], // You may need to fetch replies similarly if they are stored separately
+          commentText: comment.text,
+          timestamp: +comment.timestamp,
+        };
+      }),
+    );
 
     return videoDetail;
   }
@@ -251,5 +200,112 @@ export class VideoService {
     } else {
       throw new BadRequestException('User has no channel');
     }
+  }
+
+  // Helper functions
+  async findVideo(id: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException('Invalid Video ID');
+    }
+
+    const video = await this.videoModel.findById(id).exec();
+    if (!video) {
+      throw new NotFoundException('Video not found');
+    }
+
+    return video;
+  }
+
+  private metaSortVideo(videos: Video[]): Video[] {
+    // Custom sorting algorithm based on popularity and timestamp
+    return videos.sort((a, b) => {
+      const popularityA = a.views + a.likedBy.length + a.comments.length;
+      const popularityB = b.views + b.likedBy.length + b.comments.length;
+
+      // Convert timestamp strings to Date objects for comparison
+      const timestampA = new Date(a.timestamp).getTime();
+      const timestampB = new Date(b.timestamp).getTime();
+
+      // Sort by popularity in descending order
+      if (popularityA !== popularityB) {
+        return popularityB - popularityA;
+      }
+
+      // If popularity is the same, sort by timestamp in descending order
+      return timestampB - timestampA;
+    });
+  }
+   async findChannel(id: string) {
+    const channel = await this.channelModel
+      .findOne({ videos: new Types.ObjectId(id) })
+      .exec();
+
+    if (!channel) {
+      throw new NotFoundException('Channel not found');
+    }
+
+    return channel;
+  }
+
+  async findSuggestedVideosFromSameChannel(id: string) {
+    return this.videoModel
+      .find({ _id: { $ne: new Types.ObjectId(id) }, channel: id })
+      .limit(3)
+      .exec();
+  }
+
+  async findSuggestedVideosFromOtherChannels(id: string) {
+    return this.videoModel
+      .find({ _id: { $ne: new Types.ObjectId(id) } })
+      .limit(3)
+      .exec();
+  }
+
+  async findSuggestedVideosWithChannelDetails(suggestedVideos) {
+    return Promise.all(
+      suggestedVideos.map(async (suggestedVideo) => {
+        const suggestedVideoChannel = await this.channelModel
+          .findOne({ videos: suggestedVideo._id })
+          .exec();
+
+        return {
+          _id: suggestedVideo._id,
+          title: suggestedVideo.title,
+          thumbnail: suggestedVideo.thumbnail,
+          views: suggestedVideo.views,
+          timestamp: suggestedVideo.timestamp,
+          url: suggestedVideo.url,
+          channel: suggestedVideoChannel
+            ? {
+                _id: suggestedVideoChannel._id,
+                channelName: suggestedVideoChannel.channelName,
+                icon: suggestedVideoChannel.icon,
+                subscribers: suggestedVideoChannel.subscribers.length,
+              }
+            : null,
+        };
+      }),
+    );
+  }
+
+  async findUserLikedVideo(userId, videoId) {
+    const likeEntry = await this.likeModel
+      .findOne({ userId, entityId: videoId })
+      .exec();
+
+    return !!likeEntry;
+  }
+
+  async findCommentsForVideo(video) {
+    return this.commentModel.find({ _id: { $in: video.comments } }).exec();
+  }
+
+  async findUserDetails(comment) {
+    const user = await this.userModel.findById(comment.userId).exec();
+    return {
+      id: user._id,
+      name: user.username,
+      avatar: user.avatar,
+    };
   }
 }

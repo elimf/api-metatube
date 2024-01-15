@@ -7,6 +7,7 @@ import { UtilsModule } from '../utils/utils.module';
 import { UserSchema } from '../user/schema/user.schema';
 import { ChannelSchema } from '../channel/schema/channel.schema';
 import { LikeSchema } from '../like/schema/like.schema';
+import { CommentSchema } from '../comment/schema/comment.schema';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { LikeSchema } from '../like/schema/like.schema';
       { name: 'User', schema: UserSchema },
       { name: 'Channel', schema: ChannelSchema },
       { name: 'Like', schema: LikeSchema },
+      { name: 'Comment', schema: CommentSchema },
     ]),
     UtilsModule,
   ],

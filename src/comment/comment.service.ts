@@ -5,25 +5,28 @@ import { Comment } from './schema/comment.schema';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { Video } from '../video/schema/video.schema';
+import { User } from '../user/schema/user.schema';
+import { CommentDetail } from './dto/comment-detail.dto';
 
 @Injectable()
 export class CommentService {
   constructor(
     @InjectModel(Comment.name) private readonly commentModel: Model<Comment>,
     @InjectModel(Video.name) private readonly videoModel: Model<Video>,
+    @InjectModel(User.name) private readonly userModel: Model<User>,
   ) {}
 
   async createComment(
     createCommentDto: CreateCommentDto,
     userId: string,
-  ): Promise<Comment> {
+  ): Promise<CommentDetail> {
     const video = await this.videoModel
       .findById(createCommentDto.videoId)
       .exec();
     if (!video) {
       throw new NotFoundException(`Video not found`);
     }
-
+    const user = await this.userModel.findById(userId).exec();
     const createdComment = new this.commentModel({
       text: createCommentDto.text,
       userId,
@@ -31,7 +34,19 @@ export class CommentService {
     video.comments.push(createdComment._id);
     await video.save();
     const savedComment = await createdComment.save();
-    return savedComment.toJSON({ versionKey: false, virtuals: false });
+    const commentObject: CommentDetail = {
+      id: savedComment._id,
+      user: {
+        id: userId,
+        name: user.username,
+        avatar: user.avatar,
+      },
+      replies: [],
+      commentText: savedComment.text,
+      timestamp: +savedComment.timestamp,
+    };
+
+    return commentObject;
   }
 
   async updateComment(

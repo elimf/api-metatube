@@ -22,7 +22,7 @@ import { UpdateCommentDto } from './dto/update-comment.dto';
 
 @ApiBearerAuth()
 @ApiTags('Comments')
-@Controller('comments')
+@Controller('comment')
 export class CommentController {
   constructor(
     private readonly commentService: CommentService,
@@ -41,7 +41,10 @@ export class CommentController {
       commentDto,
       userId,
     );
-    return newComment;
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: newComment,
+    };
   }
 
   @Put(':id')
