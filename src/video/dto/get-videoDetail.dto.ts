@@ -12,7 +12,8 @@ export interface VideoDetail {
   comments?: CommentVideoDetail[];
   channel: ChannelVideoDetail;
   suggestions: Suggestions[];
-  liked?:boolean;
+  liked:boolean;
+  subscribed:boolean;
 }
 
 export interface CommentVideoDetail {

@@ -15,6 +15,7 @@ import { PlaylistModule } from './playlist/playlist.module';
 import { UtilsModule } from './utils/utils.module';
 import { ShortModule } from './short/short.module';
 import { LikeModule } from './like/like.module';
+import { SubscribeModule } from './subscribe/subscribe.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { LikeModule } from './like/like.module';
     LikeModule,
     PlaylistModule,
     ShortModule,
+    SubscribeModule,
     UserModule,
     UtilsModule,
     VideoModule,

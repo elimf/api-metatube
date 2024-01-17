@@ -98,6 +98,7 @@ export class VideoService {
   }
 
   async findById(id: string, userId?: string): Promise<VideoDetail> {
+    const user = await this.userModel.findById(userId).exec();
     const video = await this.findVideo(id);
     const channel = await this.findChannel(id);
     const suggestedVideosFromSameChannel =
@@ -110,6 +111,9 @@ export class VideoService {
       );
     const userLikedVideo = userId
       ? await this.findUserLikedVideo(userId, id)
+      : false;
+    const userSubscribedChannel = userId
+      ? await this.findUserSubscribe(user._id, channel._id)
       : false;
 
     const videoDetail: VideoDetail = {
@@ -146,6 +150,7 @@ export class VideoService {
         ...suggestedVideosWithChannelDetails,
       ],
       liked: userLikedVideo,
+      subscribed: userSubscribedChannel,
     };
 
     const commentsForVideo = await this.findCommentsForVideo(video);
@@ -308,6 +313,14 @@ export class VideoService {
     return !!likeEntry;
   }
 
+    async findUserSubscribe(userId, channelId) {
+  const channel = await this.channelModel
+    .findOne({ _id: channelId, subscribers: userId })
+    .exec();
+
+  return !!channel;
+}
+
   async findCommentsForVideo(video) {
     return this.commentModel.find({ _id: { $in: video.comments } }).exec();
   }
@@ -320,7 +333,7 @@ export class VideoService {
       avatar: user.avatar,
     };
   }
-  async findRepliesForComment(comment: any){
+  async findRepliesForComment(comment: any) {
     const replies = await this.commentModel
       .find({ _id: { $in: comment.replies } })
       .exec();
