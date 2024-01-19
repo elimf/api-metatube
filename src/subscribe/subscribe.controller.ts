@@ -15,7 +15,7 @@ import {
   ApiOperation,
 } from '@nestjs/swagger'; // Importez ApiBody pour définir le modèle de corps de la requête
 import { SubscribeService } from './subscribe.service';
-import { CreateSubscribeDto } from './dto/create-Subscribe.dto';
+import { CreateSubscribeDto } from '../subscribe/dto/create-subscribe.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiBearerAuth()
